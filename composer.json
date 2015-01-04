@@ -1,0 +1,25 @@
+{
+    "name": "mr-audio-guy/oath",
+    "description": "The TOTP based on [RFC6238](https://tools.ietf.org/html/rfc6238)",
+    "license": "MIT",
+    "keywords": ["oath", "totp", "authenticator", "google authenticator"],
+    "authors": [
+        {
+            "name": "Mustafa Talaeezadeh Khouzani",
+            "email": "mustafa.t@780.ir"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "illuminate/support": "4.2.*"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "psr-0": {
+            "MrAudioGuy\\Oath\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
