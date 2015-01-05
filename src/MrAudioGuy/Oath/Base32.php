@@ -83,7 +83,7 @@
 		 * @access protected
 		 * @var string
 		 */
-		protected $_charset;
+		protected static $_charset;
 
 		/**
 		 * Constructor

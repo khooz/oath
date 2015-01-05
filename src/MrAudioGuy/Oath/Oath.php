@@ -90,7 +90,7 @@
 		 *
 		 * @return string				Shared secret key
 		 */
-		public static function Secret ($message = null, $length = 50, $iterations = 10, $algorithm = "sha512")
+		public static function secret ($message = null, $length = 50, $iterations = 10, $algorithm = "sha512")
 		{
 			if (empty($message))
 			{
@@ -161,7 +161,7 @@
 		 *
 		 * @return int 6 digit authentication code.
 		 */
-		public static function Generate ($secret, $interval = 30, $algorithm = 'sha1')
+		public static function generate ($secret, $interval = 30, $algorithm = 'sha1')
 		{
 			$key     = static::$converter->toString($secret);
 			$message = floor(microtime(true) / $interval);
@@ -189,7 +189,7 @@
 		 */
 		public static function check ($secret, $code)
 		{
-			if (static::Generate($secret) === $code)
+			if (static::generate($secret) === $code)
 			{
 				return true;
 			}
@@ -207,7 +207,7 @@
 		 * @param string                 $domain		Domain
 		 * @param string                 $qrURL			Base url for qr-code generator
 		 */
-		public static function __construct (BaseConverterInterface $baseConverter, $type = OATH_TOTP, $issuer = '',
+		public function __construct (BaseConverterInterface $baseConverter, $type = OATH_TOTP, $issuer = '',
 											$account = '', $domain = '',
 											$qrURL = 'https://www.google.com/chart?chs=200x200&chld=M|0&cht=qr&chl=')
 		{
