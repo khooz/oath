@@ -1,5 +1,5 @@
 {
-    "name": "mr-audio-guy/oath",
+    "name": "khooz/oath",
     "description": "The TOTP based on [RFC6238](https://tools.ietf.org/html/rfc6238)",
     "license": "MIT",
     "keywords": ["oath", "totp", "authenticator", "google authenticator"],
