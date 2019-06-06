@@ -253,6 +253,6 @@
 			$this->account   = $account;
 			$this->domain    = $domain;
 			$this->qrURL     = $qrURL;
-			$this->$secret = $this->secret($message);
+			$this->secret = $this->secret($message);
 		}
 	}
