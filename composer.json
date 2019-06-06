@@ -2,11 +2,19 @@
     "name": "khooz/oath",
     "description": "The TOTP based on [RFC6238](https://tools.ietf.org/html/rfc6238)",
     "license": "MIT",
-    "keywords": ["oath", "totp", "authenticator", "google authenticator"],
+    "keywords": [
+        "oath", 
+        "totp", 
+        "authenticator", 
+        "google authenticator", 
+        "microsoft authenticator", 
+        "two-step verification", 
+        "two factor authentication"
+    ],
     "authors": [
         {
             "name": "Mustafa Talaeezadeh Khouzani",
-            "email": "your.brother.t@hotmail.com"
+            "email": "brother.t@live.com"
         }
     ],
     "require": {
@@ -18,7 +26,7 @@
             "src/migrations"
         ],
         "psr-0": {
-            "MrAudioGuy\\Oath\\": "src/"
+            "Khooz\\Oath\\": "src/"
         }
     },
     "minimum-stability": "stable"

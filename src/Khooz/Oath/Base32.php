@@ -1,7 +1,7 @@
 <?php
 	/**
-	 * class.Base32.php5
-	 * Provide Base32 conversion class
+	 * class.Base32
+	 * Provides Base32 conversion class
 	 *
 	 * @author Shannon Wynter {@link http://fremnet.net/contact}
 	 * @version 0.2
@@ -37,7 +37,7 @@
 	 *
 	 */
 
-	namespace MrAudioGuy\Oath;
+	namespace Khooz\Oath;
 
 	class Base32 implements BaseConverterInterface
 	{

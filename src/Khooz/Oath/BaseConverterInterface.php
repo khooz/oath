@@ -1,12 +1,15 @@
 <?php
 	/**
-	 * Created by PhpStorm.
-	 * User: broth_000
-	 * Date: 1/4/2015
-	 * Time: 5:43 PM
+	 * interface.BaseConverterInterface
+	 * Provides an interface for base conversion classes
+	 *
+	 * @author Mustafa Talaeezadeh Khouzani <brother.t@live.com>
+	 * @version 4.2
+	 * @copyright MIT
+	 *
 	 */
 
-	namespace MrAudioGuy\Oath;
+	namespace Khooz\Oath;
 
 
 	interface BaseConverterInterface
