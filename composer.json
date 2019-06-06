@@ -18,16 +18,20 @@
         }
     ],
     "require": {
-        "php": ">=5.5.0",
-        "illuminate/support": "4.2.*"
+        "php": ">=7",
+        "illuminate/support": "^5"
     },
-    "autoload": {
-        "classmap": [
-            "src/migrations"
-        ],
-        "psr-0": {
-            "Khooz\\Oath\\": "src/"
+    "minimum-stability": "dev",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Khooz\\Oath\\OathServiceProvider"
+            ]
         }
     },
-    "minimum-stability": "stable"
+    "autoload": {
+        "psr-4": {
+            "Khooz\\Oath\\": "src/"
+        }
+    }
 }
