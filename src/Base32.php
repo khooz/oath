@@ -95,7 +95,7 @@
 		 *
 		 * @see setCharset
 		 */
-		public function __construct ($charset = self::csRFC3548)
+		public function __construct (string $charset = self::csRFC3548)
 		{
 			static::setCharset($charset);
 		}
@@ -109,7 +109,7 @@
 		 *
 		 * @return string String of 0's and 1's
 		 */
-		public static function str2bin ($str)
+		public static function str2bin (string $str) : string
 		{
 			$chrs = unpack('C*', $str);
 
@@ -126,7 +126,7 @@
 		 * @return string The ascii output
 		 * @throws Exception
 		 */
-		public static function bin2str ($str)
+		public static function bin2str (string $str) : string
 		{
 			if (strlen($str) % 8 > 0)
 			{
@@ -155,7 +155,7 @@
 		 * @return string String encoded as base32
 		 * @throws exception
 		 */
-		public static function fromBin ($str)
+		public static function fromBin (string $str) : string
 		{
 			if (strlen($str) % 8 > 0)
 			{
@@ -198,7 +198,7 @@
 		 *
 		 * @return string Ascii binary string
 		 */
-		public static function toBin ($str)
+		public static function toBin (string $str) : string
 		{
 			if (!preg_match('/^[' . static::$_charset . ']+$/', $str))
 			{
@@ -230,7 +230,7 @@
 		 *
 		 * @return string The converted base32 string
 		 */
-		public static function fromString ($str)
+		public static function fromString (string $str) : string
 		{
 			return static::fromBin(static::str2bin($str));
 		}
@@ -245,7 +245,7 @@
 		 *
 		 * @return string The normal string
 		 */
-		public static function toString ($str)
+		public static function toString (string $str) : string
 		{
 			$str = strtoupper($str);
 
@@ -269,9 +269,9 @@
 		 *
 		 * @param string $str The string of 0's and 1's you want to convert
 		 *
-		 * @return char Resulting base32 character
+		 * @return stringchar Resulting base32 character
 		 */
-		private static function _mapcharset ($str)
+		private static function _mapcharset (string $str) : string
 		{
 			return static::$_charset[bindec($str)];
 		}
@@ -284,11 +284,11 @@
 		 *
 		 * @access private
 		 *
-		 * @param char $chr The caracter to map
+		 * @param string $chr The caracter to map
 		 *
-		 * @return str String of 0's and 1's
+		 * @return string String of 0's and 1's
 		 */
-		private static function _mapbin ($chr)
+		private static function _mapbin (string $chr) : string
 		{
 			return sprintf('%08b', strpos(static::$_charset, $chr));
 		}
@@ -309,7 +309,7 @@
 		 *
 		 * @throws Exception
 		 */
-		public static function setCharset ($charset = self::csRFC3548)
+		public static function setCharset (string $charset = self::csRFC3548)
 		{
 			if (strlen($charset) == 32)
 			{
