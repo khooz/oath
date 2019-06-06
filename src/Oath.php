@@ -5,7 +5,7 @@
 	 * Provides a class for OATH functionalities RFC6238 {@link http://tools.ietf.org/html/rfc6238}
 	 *
 	 * @author Mustafa Talaeezadeh Khouzani <brother.t@live.com>
-	 * @version 4.2
+	 * @version 5.8
 	 * @copyright MIT
 	 *
 	 * Description of Oath
