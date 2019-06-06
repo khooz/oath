@@ -18,17 +18,9 @@
         }
     ],
     "require": {
-        "php": ">=7",
-        "illuminate/support": "^5"
+        "php": ">=7"
     },
     "minimum-stability": "dev",
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Khooz\\Oath\\OathServiceProvider"
-            ]
-        }
-    },
     "autoload": {
         "psr-4": {
             "Khooz\\Oath\\": "src/"

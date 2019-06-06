@@ -27,23 +27,23 @@
 	defined("OATH_TOTP") ?: define("OATH_TOTP", 'totp', true);
 	defined("OATH_HOTP") ?: define("OATH_HOTP", 'hotp', true);
 
-	class Oath
+	class OTP
 	{
 		/**
-		 * @const string TOTP type descriptor
+		 * @var string TOTP Constant type descriptor for Time-based One-time Passwords
 		 */
 		const TOTP = 'totp';
 
 		/**
-		 * @const string HOTP type descriptor
+		 * @var string HOTP Constant type descriptor for counter-based One-time Passwords
 		 */
 		const HOTP = 'hotp';
 
 		/**
 		 *
-		 * @var BaseConverterInterface Converter class for RFC3548 base 32 conversion
+		 * @var BaseConverterInterface Converter class for RFC3548 base-32 conversion
 		 */
-		protected static $converter;
+		protected $converter;
 
 		/**
 		 *
@@ -51,51 +51,55 @@
 		 *      totp: time-based one time password
 		 *      hotp: counter-based one time password
 		 */
-		protected static $type;
+		protected $type;
 
 		/**
 		 *
 		 * @var string Shared secret for HMAC
 		 */
-		public static $secret;
+		public $secret;
 
 		/**
 		 *
 		 * @var string The issuer of oath QR code generator
 		 */
-		public static $issuer;
+		public $issuer;
 
 		/**
 		 *
 		 * @var string Account name for distinction. recommended to used as account@domain combination.
 		 */
-		public static $account;
+		public $account;
 
 		/**
 		 *
 		 * @var string Domain name for distinction. recommended to used as account@domain combination.
 		 */
-		public static $domain;
+		public $domain;
 
 		/**
 		 *
 		 * @var string A url linking to the oath QR code provider. It is concatenated with oath combination compatible
 		 *      with Google Authenticator to generate live QR codes.
 		 */
-		public static $qrURL;
+		public $qrURL;
 
 		/**
 		 * Generates a new secret
 		 *
-		 * @param string $message		Used as secret for a hash to generate a shared secret.
-		 * @param int $length 			The length of the shared key (minus salt). Default is 50 (resulting secret of
-		 *                    			size 80).
-		 * @param int    $iterations	Iterations of the hash algorithm. Default is 10.
-		 * @param string $algorithm		The hash algorithm.
+		 * @param	string		$message		Used as secret for a hash to generate a shared secret.
+		 * @param	int			$length			The length of the shared key (minus salt). Default is 50 (resulting secret of size 80).
+		 * @param	int			$iterations		Iterations of the hash algorithm. Default is 10.
+		 * @param	string		$algorithm		The hash algorithm.
 		 *
-		 * @return string				Shared secret key
+		 * @return	string						Shared secret key
 		 */
-		public static function secret ($message = null, $length = 50, $iterations = 10, $algorithm = "sha512")
+		public  function secret (
+			string $message = null, 
+			int $length = 50, 
+			int $iterations = 10, 
+			string $algorithm = "sha512"
+			) : string
 		{
 			if (empty($message))
 			{
@@ -117,44 +121,50 @@
 			$message = hash_pbkdf2($algorithm, $message, $message, $iterations, $length, true);
 
 			// Base32 conversion, Use the appropriate base32 converter method here to transform secret TO base32
-			return static::$converter->fromString($message);
+			return $this->$converter->fromString($message);
 		}
 
 		/**
 		 * Returns a live QR code.
 		 *
-		 * @param string $secret Shared Secret Key
-		 * @param string $account
-		 * @param string $domain
-		 * @param string $issuer
-		 * @param string $type
+		 * @param	string		$secret Shared Secret Key
+		 * @param	string		$account
+		 * @param	string		$domain
+		 * @param	string		$issuer
+		 * @param	string		$type
 		 *
-		 * @return string URL to the live QR code generator
+		 * @return	string		URL to the live QR code generator
 		 */
-		public static function getQrUrl ($secret = null, $account = null, $domain = null, $issuer = null, $type = null)
+		public function getQRURL (
+			string $secret = null, 
+			string $account = null, 
+			string $domain = null, 
+			string $issuer = null, 
+			string $type = null
+			) : string
 		{
 			if (empty($type))
 			{
-				$type = self::$type;
+				$type = $this->$type;
 			}
 			if (empty($issuer))
 			{
-				$issuer = self::$issuer;
+				$issuer = $this->$issuer;
 			}
 			if (empty($account))
 			{
-				$account = self::$account;
+				$account = $this->$account;
 			}
 			if (empty($domain))
 			{
-				$domain = self::$domain;
+				$domain = $this->$domain;
 			}
 			if (empty($secret))
 			{
 				$secret = "";
 			}
 
-			return static::$qrURL . "otpauth://$type/$issuer%3A$account@$domain?secret=$secret&issuer=$issuer";
+			return $this->$qrURL . "otpauth://$type/$issuer%3A$account@$domain?secret=$secret&issuer=$issuer";
 		}
 
 		/**
@@ -167,9 +177,14 @@
 		 *
 		 * @return int 6 digit authentication code.
 		 */
-		public static function generate ($secret, $n = 0, $interval = 30, $algorithm = 'sha1')
+		public function generate (
+			string $secret, 
+			int $n = 0, 
+			int $interval = 30, 
+			string $algorithm = 'sha1'
+			) : int
 		{
-			$key     = static::$converter->toString($secret);
+			$key     = $this->$converter->toString($secret);
 			$message = floor(microtime(true) / $interval) + $n;
 			$message = pack('N*', 0) . pack('N*', $message);
 			$hash    = hash_hmac($algorithm, $message, $key, true);
@@ -195,12 +210,17 @@
 		 *
 		 * @return bool 		 True if succeeds, false if otherwise.
 		 */
-		public static function check ($secret, $code, $range = 0, $n = 0)
+		public  function check (
+			string $secret, 
+			int $code, 
+			int $range = 0, 
+			int $n = 0
+			) : bool
 		{
 			$checked = false;
 			for ($i = -$range; $i <= $range; $i++)
 			{
-				$checked |= static::generate($secret, $n + $i) === $code;
+				$checked |= $this->generate($secret, $n + $i) === $code;
 			}
 
 			return $checked;
@@ -216,16 +236,22 @@
 		 * @param string                 $domain		Domain
 		 * @param string                 $qrURL			Base url for qr-code generator
 		 */
-		public function __construct (BaseConverterInterface $baseConverter, $type = OATH_TOTP, $issuer = '',
-											$account = '', $domain = '',
-											$qrURL = 'https://www.google.com/chart?chs=200x200&chld=M|0&cht=qr&chl=')
+		public function __construct (
+			string $message = null,
+			string $issuer = null,
+			string $account = null, 
+			string $domain = null,
+			string $qrURL = 'https://www.google.com/chart?chs=200x200&chld=M|0&cht=qr&chl=',
+			BaseConverterInterface $baseConverter = null, 
+			$type = OATH_TOTP
+			)
 		{
-			static::$converter = $baseConverter;
-			static::$type      = $type;
-			static::$issuer    = $issuer;
-			static::$account   = $account;
-			static::$domain    = $domain;
-			static::$qrURL     = $qrURL;
-			//static::$secret = static::$Secret();
+			$this->converter = $baseConverter ?? new Base32();
+			$this->type      = $type;
+			$this->issuer    = $issuer;
+			$this->account   = $account;
+			$this->domain    = $domain;
+			$this->qrURL     = $qrURL;
+			$this->$secret = $this->secret($message);
 		}
 	}

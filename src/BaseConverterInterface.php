@@ -25,7 +25,7 @@
 		 *
 		 * @return string String of 0's and 1's
 		 */
-		public static function str2bin ($str);
+		public static function str2bin (string $str) : string;
 
 		/**
 		 * bin2str
@@ -37,7 +37,7 @@
 		 * @return string The ascii output
 		 * @throws \Exception
 		 */
-		public static function bin2str ($str);
+		public static function bin2str (string $str) : string;
 
 		/**
 		 * fromBin
@@ -49,7 +49,7 @@
 		 * @return string String encoded as base32
 		 * @throws \Exception
 		 */
-		public static function fromBin ($str);
+		public static function fromBin (string $str) : string;
 
 		/**
 		 * toBin
@@ -62,7 +62,7 @@
 		 *
 		 * @return string Ascii binary string
 		 */
-		public static function toBin ($str);
+		public static function toBin (string $str) : string;
 
 		/**
 		 * fromString
@@ -74,7 +74,7 @@
 		 *
 		 * @return string The converted base32 string
 		 */
-		public static function fromString ($str);
+		public static function fromString (string $str) : string;
 
 		/**
 		 * toString
@@ -86,7 +86,7 @@
 		 *
 		 * @return string The normal string
 		 */
-		public static function toString ($str);
+		public static function toString (string $str) : string;
 
 		/**
 		 * setCharset
@@ -104,5 +104,5 @@
 		 *
 		 * @throws \Exception
 		 */
-		public static function setCharset ($charset);
+		public static function setCharset (string $charset);
 	}
