@@ -103,8 +103,7 @@
 		{
 			if (empty($message))
 			{
-				mt_srand(microtime(true));
-				$message = mt_rand();
+				$message = bin2hex(random_bytes(64));
 			}
 			if (empty($length))
 			{
@@ -121,7 +120,7 @@
 			$message = hash_pbkdf2($algorithm, $message, $message, $iterations, $length, true);
 
 			// Base32 conversion, Use the appropriate base32 converter method here to transform secret TO base32
-			return $this->$converter->fromString($message);
+			return $this->converter->fromString($message);
 		}
 
 		/**
@@ -149,19 +148,19 @@
 			}
 			if (empty($issuer))
 			{
-				$issuer = $this->$issuer;
+				$issuer = $this->$issuer ?? "";
 			}
 			if (empty($account))
 			{
-				$account = $this->$account;
+				$account = $this->$account ?? "";
 			}
 			if (empty($domain))
 			{
-				$domain = $this->$domain;
+				$domain = $this->$domain ?? "";
 			}
 			if (empty($secret))
 			{
-				$secret = "";
+				$secret = $this->secret ?? "";
 			}
 
 			return $this->$qrURL . "otpauth://$type/$issuer%3A$account@$domain?secret=$secret&issuer=$issuer";
@@ -178,13 +177,14 @@
 		 * @return int 6 digit authentication code.
 		 */
 		public function generate (
-			string $secret, 
+			string $secret = null, 
 			int $n = 0, 
 			int $interval = 30, 
 			string $algorithm = 'sha1'
 			) : int
 		{
-			$key     = $this->$converter->toString($secret);
+			$secret = $secret ?? $this->secret;
+			$key     = $this->converter->toString($secret);
 			$message = floor(microtime(true) / $interval) + $n;
 			$message = pack('N*', 0) . pack('N*', $message);
 			$hash    = hash_hmac($algorithm, $message, $key, true);
@@ -211,13 +211,14 @@
 		 * @return bool 		 True if succeeds, false if otherwise.
 		 */
 		public  function check (
-			string $secret, 
-			int $code, 
+			int $code,
+			string $secret = null, 
 			int $range = 0, 
 			int $n = 0
 			) : bool
 		{
 			$checked = false;
+			$secret = $secret ?? $this->secret;
 			for ($i = -$range; $i <= $range; $i++)
 			{
 				$checked |= $this->generate($secret, $n + $i) === $code;
