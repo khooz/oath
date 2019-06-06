@@ -1,23 +1,28 @@
 <?php
 
 	/**
+	 * class.Oath
+	 * Provides a class for OATH functionalities RFC6238 {@link http://tools.ietf.org/html/rfc6238}
+	 *
+	 * @author Mustafa Talaeezadeh Khouzani <brother.t@live.com>
+	 * @version 4.2
+	 * @copyright MIT
+	 *
 	 * Description of Oath
 	 *
-	 *  It implements the Two Step Authentication specified in RFC6238 @ http://tools.ietf.org/html/rfc6238 using OATH
-	 *      and compatible with Google Authenticator App for android.
-	 *  It uses a 3rd party class called Base32 for RFC3548 base 32 encode/decode. Feel free to use better adjusted
+	 *  It implements the Two Step Authentication specified in RFC6238 {@link http://tools.ietf.org/html/rfc6238} using OATH
+	 *      and compatible with most authenricator apps like Google Authenticator and Microsoft Authenticator.
+	 *  It uses a 3rd party class called Base32 for RFC3548 base32 conversion. Feel free to use better adjusted
 	 *      implementation.
 	 *
 	 *      Special Thanks goes to:
-	 *          phil@idontplaydarts.com for this article https://www.idontplaydarts.com/2011/07/google-totp-two-factor-authentication-for-php/
-	 *          Wikipedia.org for this article http://en.wikipedia.org/wiki/Google_Authenticator
-	 *          devicenull@github.com for this class https://github.com/devicenull/PHP-Google-Authenticator/blob/master/base32.php
+	 *          phil@idontplaydarts.com for this article {@link https://www.idontplaydarts.com/2011/07/google-totp-two-factor-authentication-for-php/}
+	 *          Wikipedia.org for this article {@link http://en.wikipedia.org/wiki/Google_Authenticator}
+	 *          devicenull@github.com for this class {@link https://github.com/devicenull/PHP-Google-Authenticator/blob/master/base32.php}
 	 *
-	 *
-	 * @author Mustafa Talaeedeh Khouzani <your.brother.t@hotmail.com>
 	 */
 
-	namespace MrAudioGuy\Oath;
+	namespace Khooz\Oath;
 
 	defined("OATH_TOTP") ?: define("OATH_TOTP", 'totp', true);
 	defined("OATH_HOTP") ?: define("OATH_HOTP", 'hotp', true);
@@ -155,16 +160,17 @@
 		/**
 		 * Generates a 6 digit code for authentication.
 		 *
-		 * @param string $secret    Shared Secret Key
-		 * @param int    $interval  The code generation interval in seconds. Default is 30.
-		 * @param string $algorithm The hmac algorithm. Default is sha1.
+		 * @param	string	$secret			Shared Secret Key
+		 * @param	int		$n				An integer that slides codes back and forth (useful to be used in slow networks)
+		 * @param	int		$interval		The code generation interval in seconds. Default is 30.
+		 * @param	string	$algorithm		The hmac algorithm. Default is sha1.
 		 *
 		 * @return int 6 digit authentication code.
 		 */
-		public static function generate ($secret, $interval = 30, $algorithm = 'sha1')
+		public static function generate ($secret, $n = 0, $interval = 30, $algorithm = 'sha1')
 		{
 			$key     = static::$converter->toString($secret);
-			$message = floor(microtime(true) / $interval);
+			$message = floor(microtime(true) / $interval) + $n;
 			$message = pack('N*', 0) . pack('N*', $message);
 			$hash    = hash_hmac($algorithm, $message, $key, true);
 			$offset  = ord($hash[19]) & 0xf;
@@ -182,19 +188,22 @@
 		/**
 		 * Checks if the code is valid
 		 *
-		 * @param string $secret Shared Secret Key
-		 * @param int    $code   6 digit authentication code.
+		 * @param	string	$secret		Shared Secret Key
+		 * @param	int		$code		6 digit authentication code.
+		 * @param	int		$range		An integer defining a range from pivot `current + n` to be checked (useful to be used in slow networks)
+		 * @param	int		$n			An integer that slides codes back and forth (useful to be used in slow networks)
 		 *
 		 * @return bool 		 True if succeeds, false if otherwise.
 		 */
-		public static function check ($secret, $code)
+		public static function check ($secret, $code, $range = 0, $n = 0)
 		{
-			if (static::generate($secret) === $code)
+			$checked = false;
+			for ($i = -$range; $i <= $range; $i++)
 			{
-				return true;
+				$checked |= static::generate($secret, $n + $i) === $code;
 			}
 
-			return false;
+			return $checked;
 		}
 
 		/**
