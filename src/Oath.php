@@ -144,26 +144,26 @@
 		{
 			if (empty($type))
 			{
-				$type = $this->$type;
+				$type = $this->type;
 			}
 			if (empty($issuer))
 			{
-				$issuer = $this->$issuer ?? "";
+				$issuer = $this->issuer ?? "";
 			}
 			if (empty($account))
 			{
-				$account = $this->$account ?? "";
+				$account = $this->account ?? "";
 			}
 			if (empty($domain))
 			{
-				$domain = $this->$domain ?? "";
+				$domain = $this->domain ?? "";
 			}
 			if (empty($secret))
 			{
 				$secret = $this->secret ?? "";
 			}
 
-			return $this->$qrURL . "otpauth://$type/$issuer%3A$account@$domain?secret=$secret&issuer=$issuer";
+			return $this->qrURL . "otpauth://$type/$issuer%3A$account@$domain?secret=$secret&issuer=$issuer";
 		}
 
 		/**
