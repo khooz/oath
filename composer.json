@@ -20,7 +20,7 @@
     "require": {
         "php": ">=7"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "Khooz\\Oath\\": "src/"
