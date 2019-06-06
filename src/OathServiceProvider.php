@@ -1,11 +1,11 @@
 <?php 
-	
+
 	/**
 	 * interface.BaseConverterInterface
 	 * Provides an interface for base conversion classes
 	 *
 	 * @author Mustafa Talaeezadeh Khouzani <brother.t@live.com>
-	 * @version 4.2
+	 * @version 5.8
 	 * @copyright MIT
 	 *
 	 */
@@ -40,21 +40,6 @@
 		 */
 		public function register()
 		{
-			//
-			$this->app->booting(function()
-			{
-				$loader = \Illuminate\Foundation\AliasLoader::getInstance();
-				$loader->alias('Oath', 'Khooz\Commons\Facades\Oath');
-				$loader->alias('Base32', 'Khooz\Commons\Facades\Base32');
-			});
-			$this->app['baseConverter'] = $this->app->share(function($app)
-			{
-				return new Base32();
-			});
-			$this->app['oath'] = $this->app->share(function($app)
-			{
-				return new Oath($app['baseConverter']);
-			});
 		}
 
 		/**
@@ -64,7 +49,6 @@
 		 */
 		public function provides()
 		{
-			return array('baseConverter','oath');
 		}
 
 	}

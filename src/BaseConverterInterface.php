@@ -1,10 +1,11 @@
 <?php
+	
 	/**
 	 * interface.BaseConverterInterface
 	 * Provides an interface for base conversion classes
 	 *
 	 * @author Mustafa Talaeezadeh Khouzani <brother.t@live.com>
-	 * @version 4.2
+	 * @version 5.8
 	 * @copyright MIT
 	 *
 	 */

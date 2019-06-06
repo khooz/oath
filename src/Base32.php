@@ -1,4 +1,5 @@
 <?php
+
 	/**
 	 * class.Base32
 	 * Provides Base32 conversion class
