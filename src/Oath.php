@@ -555,10 +555,7 @@
 			$this->domain     = $domain                                 ?? "";
 			$this->qrURL      = $qrURL                                  ?? "https://www.google.com/chart?chs=200x200&chld=M|0&cht=qr&chl=";
 			$this->converter  = $baseConverter                          ?? new Base32();
-			$this->$message   = $message                                ?? "12";
-			$this->$salt      = $salt                                   ?? "12";
 			$this->secret     = $secret                                 ?? $this->secret($message, $salt);
-			dd($this->secret);
 			
 			if ($this->type === OATH_HOTP)
 			{ 
