@@ -342,18 +342,17 @@ class Oath
 		string	$converter			= null
 	)
 	{
-		$algorithm					= $algorithm ? : strtolower($algorithm);
-		static::$STRICT				= $strict === null ? : $strict;
-		static::$TYPE				= $strict ? (!in_array($type, static::$VALID_TYPES) ? : $type) : ($type === null ? : $type);
-		static::$ISSUER				= $issuer === null ? : $issuer;
-		static::$DOMAIN				= $domain === null ? : $domain;
-		static::$PERIOD				= $period < 1 ? : $period;
-		static::$INITIAL_COUNTER	= ($initial_counter === null || $initial_counter < 0) ? : $initial_counter;
-		static::$ALGORITHM			= $strict ? (!in_array($algorithm, static::$VALID_ALGORITHMS) ? : $algorithm) : ($algorithm === null ? : (!in_array($algorithm, hash_hmac_algos()) ? : $algorithm));
-		static::$ITERATIONS			= $iterations < 1 ? : $iterations;
-		static::$LENGTH				= $length < 1 ? : $length;
-		static::$DIGITS				= $strict ? (!in_array($digits, static::$VALID_DIGITS) ? : $digits) : ($digits === null ? : $digits);
-		static::$CONVERTER			= $converter ? : (!in_array(BaseConverterInterface::class, class_implements($converter, true)) ? : $converter);
+		static::$STRICT				= $strict === null ? static::$STRICT : $strict;
+		static::$TYPE				= $strict ? (!in_array($type, static::$VALID_TYPES) ? static::$TYPE : $type) : ($type === null ? static::$TYPE : $type);
+		static::$ISSUER				= $issuer === null ? static::$ISSUER : $issuer;
+		static::$DOMAIN				= $domain === null ? static::$DOMAIN : $domain;
+		static::$PERIOD				= $period < 1 ? static::$PERIOD : $period;
+		static::$INITIAL_COUNTER	= ($initial_counter === null || $initial_counter < 0) ? static::$INITIAL_COUNTER : $initial_counter;
+		static::$ALGORITHM			= $strict ? (!in_array(strtolower($algorithm), static::$VALID_ALGORITHMS) ? static::$ALGORITHM : strtolower($algorithm)) : ($algorithm === null ? static::$ALGORITHM : (!in_array(strtolower($algorithm), hash_hmac_algos()) ? static::$ALGORITHM : strtolower($algorithm)));
+		static::$ITERATIONS			= $iterations < 1 ? static::$ITERATIONS : $iterations;
+		static::$LENGTH				= $length < 1 ? static::$LENGTH : $length;
+		static::$DIGITS				= $strict ? (!in_array($digits, static::$VALID_DIGITS) ? static::$DIGITS : $digits) : ($digits === null ? static::$DIGITS : $digits);
+		static::$CONVERTER			= $converter ? static::$CONVERTER : (!in_array(BaseConverterInterface::class, class_implements($converter, true)) ? static::$CONVERTER : $converter);
 	}
 
 	/**
@@ -364,10 +363,7 @@ class Oath
 	protected function secret () : string
 	{	
 		// Making a cryptographical hash as a secret
-		$message = hash_pbkdf2($this->algorithm, $this->message, $this->salt, $this->iterations, $this->length, true);
-
-		// Base32 conversion, Use the appropriate base32 converter method here to transform secret TO base32
-		return $message;
+		return hash_pbkdf2($this->algorithm, $this->message, $this->salt, $this->iterations, $this->length, true);
 	}
 
 	
@@ -386,7 +382,6 @@ class Oath
 	) : int
 	{
 		// Preparation
-		$key = $this->converter->toString($this->secret);
 		if ($this->type === Oath::HOTP)
 		{
 			$bias = $param === null ? $this->counter : $param;
@@ -399,11 +394,11 @@ class Oath
 		// Set bias
 		$pivot = $pivot ?? 0;
 		$bias += $pivot;
-		$bias = $bias >= 0 ? : 0;
+		$bias = $bias >= 0 ? $bias : 0;
 
 		// Code generation
 		$message = pack('N*', 0) . pack('N*', $bias);
-		$hash    = hash_hmac($this->algorithm, $message, $key, true);
+		$hash    = hash_hmac($this->algorithm, $message, $this->secret, true);
 		$offset  = ord($hash[19]) & 0xf;
 		$otp = (
 					((ord($hash[$offset + 0]) & 0x7f) << 24) |
@@ -496,18 +491,18 @@ class Oath
 		string	$converter			= null
 		)
 	{
-		$this->strict		= $strict === null	? static::$STRICT						: $strict;
-		$this->length		= $length < 1		? static::$LENGTH						: $length;
-		$this->iterations	= $iterations < 1	? static::$ITERATIONS					: $iterations;
-		$this->message		= empty($message)	? bin2hex(random_bytes($this->length))	: $message;
-		$this->salt			= empty($salt)		? bin2hex(random_bytes($this->length))	: $salt;
+		$this->strict		= $strict === null	? static::$STRICT				: $strict;
+		$this->length		= $length < 1		? static::$LENGTH				: $length;
+		$this->iterations	= $iterations < 1	? static::$ITERATIONS			: $iterations;
+		$this->message		= empty($message)	? random_bytes($this->length)	: $message;
+		$this->salt			= empty($salt)		? random_bytes($this->length)	: $salt;
 
 		$this->issuer		= $issuer === null ? static::$ISSUER : $issuer;
 		$this->domain		= $domain === null ? static::$DOMAIN : $domain;
 		$this->account		= $account ?? "";
 
-		$algorithm = $algorithm ? : strtolower($algorithm);
-		$this->converter	= $converter	? new ${static::$CONVERTER}() : (!in_array(BaseConverterInterface::class, class_implements($converter, true)) ? new ${static::$CONVERTER}() : new $converter());
+		$algorithm = $algorithm ? null : strtolower($algorithm);
+		$this->converter	= $converter	? (!in_array(BaseConverterInterface::class, class_implements($converter, true)) ? new static::$CONVERTER() : new $converter()) : new static::$CONVERTER();
 		$this->algorithm	= $strict		? (!in_array($algorithm, static::$VALID_ALGORITHMS) ? static::$ALGORITHM : $algorithm) : ($algorithm === null ? static::$ALGORITHM : (!in_array($algorithm, hash_hmac_algos()) ? static::$ALGORITHM : $algorithm));
 		$this->digits		= $strict		? (!in_array($digits, static::$VALID_DIGITS) ? static::$DIGITS : $digits) : ($digits === null ? static::$DIGITS : $digits);
 		$this->type			= $strict		? (!in_array($type, static::$VALID_TYPES) ? static::$TYPE : $type) : ($type === null ? static::$TYPE : $type);
@@ -751,7 +746,7 @@ class Oath
 		$label = !empty($this->account) ? "{$this->account}" . (!empty($this->domain)  ? "@{$this->domain}" : "") : "";
 		$label = !empty($this->issuer) ? (!empty($label) ? "{$this->issuer}:$label" : "{$this->issuer}") : $label;
 		$parameters = [
-			'secret'    => $this->secret,
+			'secret'    => $this->converter->fromString($this->secret),
 			'algorithm' => $this->algorithm,
 			'digits'    => $this->digits,
 		];
@@ -783,7 +778,7 @@ class Oath
 	 */
 	protected function setStrict (bool $value) : bool
 	{
-		$this->strict = $value === null ? : $value;
+		$this->strict = $value === null ? $this->strict : $value;
 		return $this->strict;
 	}
 	
@@ -798,7 +793,7 @@ class Oath
 	 */
 	protected function setLength (int $value) : int
 	{
-		$this->length = $value < 1 ? : $value;
+		$this->length = $value < 1 ? $this->length : $value;
 		return $this->length;
 	}
 	
@@ -813,7 +808,7 @@ class Oath
 	 */
 	protected function setIterations (int $value) : int
 	{
-		$this->iterations = $value < 1 ? : $value;
+		$this->iterations = $value < 1 ? $this->iterations : $value;
 		return $this->iterations;
 	}
 	
@@ -828,7 +823,7 @@ class Oath
 	 */
 	protected function setMessage (string $value) : string
 	{
-		$this->message = empty($value) ? : $value;
+		$this->message = empty($value) ? $this->message : $value;
 		return $this->message;
 	}
 	
@@ -843,7 +838,7 @@ class Oath
 	 */
 	protected function setSalt (string $value) : string
 	{
-		$this->salt = empty($value) ? : $value;
+		$this->salt = empty($value) ? $this->salt : $value;
 		return $this->salt;
 	}
 	
@@ -856,7 +851,7 @@ class Oath
 	 */
 	protected function setIssuer (string $value) : string
 	{
-		$this->issuer = $value === null ? : $value;
+		$this->issuer = $value === null ? $this->issuer : $value;
 		return $this->issuer;
 	}
 	
@@ -869,7 +864,7 @@ class Oath
 	 */
 	protected function setDomain (string $value) : string
 	{
-		$this->domain = $value === null ? : $value;
+		$this->domain = $value === null ? $this->domain : $value;
 		return $this->domain;
 	}
 	
@@ -882,7 +877,7 @@ class Oath
 	 */
 	protected function setAccount (string $value) : string
 	{
-		$this->account = $value ? : $value;
+		$this->account = $value ? $this->account : $value;
 		return $this->account;
 	}
 	
@@ -895,7 +890,7 @@ class Oath
 	 */
 	protected function setConverter (BaseConverterInterface $value) : BaseConverterInterface
 	{
-		$this->converter = $value ? : $value;
+		$this->converter = $value ? $this->converter : $value;
 		return $this->converter;
 	}
 	
@@ -908,8 +903,8 @@ class Oath
 	 */
 	protected function setAlgorithm (string $value) : string
 	{
-		$value = $value ? : strtolower($value);
-		$this->algorithm = $this->strict ? (!in_array($value, static::$VALID_ALGORITHMS) ? : $value) : ($value === null ? : (!in_array($value, hash_hmac_algos()) ? : $value));
+		$value = $value ? null : strtolower($value);
+		$this->algorithm = $this->strict ? (!in_array($value, static::$VALID_ALGORITHMS) ? $this->algorithm : $value) : ($value === null ? $this->algorithm : (!in_array($value, hash_hmac_algos()) ? $this->algorithm : $value));
 		return $this->algorithm;
 	}
 	
@@ -922,7 +917,7 @@ class Oath
 	 */
 	protected function setDigits (int $value) : int
 	{
-		$this->digits = $this->strict ? (!in_array($value, static::$VALID_DIGITS) ? : $value) : ($value === null ? : $value);
+		$this->digits = $this->strict ? (!in_array($value, static::$VALID_DIGITS) ? $this->digits : $value) : ($value === null ? $this->digits : $value);
 		return $this->digits;
 	}
 	
@@ -937,7 +932,7 @@ class Oath
 	 */
 	protected function setType (string $value) : string
 	{
-		$this->type = $this->strict ? (!in_array($value, static::$VALID_TYPES) ? : $value) : ($value === null ? : $value);
+		$this->type = $this->strict ? (!in_array($value, static::$VALID_TYPES) ? $this->type : $value) : ($value === null ? $this->type : $value);
 		return $this->type;
 	}
 	
@@ -970,7 +965,7 @@ class Oath
 	{
 		if ($this->type === Oath::HOTP)
 		{ 
-			$this->counter = ($value === null || $value < 0) ? : $value;
+			$this->counter = ($value === null || $value < 0) ? $this->counter : $value;
 			$this->period = null;
 		}
 		return $this->counter;
@@ -987,7 +982,7 @@ class Oath
 	{
 		if ($this->type === Oath::TOTP)
 		{
-			$this->period  = $value < 1 ? : $value;
+			$this->period  = $value < 1 ? $this->period : $value;
 			$this->counter = null;
 		}
 		return $this->period;
