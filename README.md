@@ -93,6 +93,6 @@ The `parameters` are `secret`, `digits`, `algorithm`, `period` or `counter` in U
 ## finally()
 {
 	
-And if you feel like it, you can [donate here](paypal.me/khooz) to help me.
+And if you feel like it, you can [donate here](https://paypal.me/khooz) to help me.
 
 }
