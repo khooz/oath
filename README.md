@@ -1,5 +1,5 @@
 # Oath
-Oath is a One Time Password library mostly known as authenticators in Google's Two-Step Verification and similar products. It covers bose HOTP and TOTP based on their RFC descriptions.
+Oath is a One Time Password library mostly known as authenticators in Google's Two-Step Verification and similar products. It covers both HOTP and TOTP based on their RFC descriptions.
 
 
 ## Description of Oath

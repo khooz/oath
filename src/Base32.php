@@ -252,7 +252,7 @@ class Base32 implements BaseConverterInterface
 		$str = strtoupper($str);
 
 		// csSave actually has to be able to consider extra characters
-		if (static::$_charset == static::csSafe)
+		if (static::$_charset == self::csSafe)
 		{
 			$str = str_replace('O', '0', $str);
 			$str = str_replace(['I', 'L'], '1', $str);

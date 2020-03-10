@@ -30,7 +30,7 @@ interface BaseConverterInterface
 	/**
 	 * toString
 	 *
-	 * Convert any base32 string to a normal string
+	 * Convert any base32 string to a normal sctring
 	 * This should be binary safe...
 	 *
 	 * @param string $str The base32 string to convert
