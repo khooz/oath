@@ -2,7 +2,7 @@
 Oath is a One Time Password library used in authenticators. It covers both HOTP and TOTP methods of code generation.
 
 
-## What is Package?
+## What is this package?
 It implements the HMAC-based One-Time Password specified in [RFC6238](http://tools.ietf.org/html/rfc6238) used in many Two Step Authentication solutions. It is compatible with Authenticator Apps Like Google's and Microsoft's. It uses a @devicenull 's class called [Base32](https://github.com/devicenull/PHP-Google-Authenticator/blob/master/base32.php) for [RFC3548](https://tools.ietf.org/html/rfc3548) Base32 encodeing and decoding. Feel free to use any custom Base32-converting class, which have `encode` and `decode` public static functions.
 
 # Getting Started
