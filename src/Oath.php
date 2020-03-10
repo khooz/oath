@@ -311,136 +311,6 @@ class Oath
 	 * @var string
 	 */
 	protected $digits;
-
-	/**
-	 * Validates nessessary inputs for oath and returns valid or default values
-	 *
-	 * @param	string		$secret		Shared Secret Key
-	 * @param	string		$account	Account name for identification of different keys
-	 * @param	string		$domain		Domain for the account used
-	 * @param	string		$issuer		Issuer of this key
-	 * @param	string		$digits		Number of digits of code
-	 * @param	string		$algorithm	The algorithm of code generation. Valid values are `sha1`, `sha256` and `sha1`
-	 * @param	string		$counter	Bias for the hotp counter
-	 * @param	string		$period		Interval of code generation in totp, in seconds
-	 * @param	string		$type		Type of code generation. Valid values are defined constants `OATH_TOTP` and `OATH_HOTP`
-	 *
-	 * @return	string						Shared secret key
-	 */
-	private function validate (
-		string $secret    = null, 
-		string $account   = null, 
-		string $domain    = null, 
-		string $issuer    = null, 
-		int    $digits    = null,
-		string $algorithm = null,
-		int    $counter   = null,
-		int    $period    = null,
-		string $type      = null
-		) : object 
-	{ return new class($this, $secret, $account, $domain, $issuer, $digits, $algorithm, $counter, $period, $type)
-		{
-			public $type;
-			public $algorithm;
-			public $digits;
-			public $period;
-			public $counter;
-			public $secret;
-			public $issuer;
-			public $account;
-			public $domain;
-
-			public function __construct(
-				Oath    $reference,
-				string $secret    = null, 
-				string $account   = null, 
-				string $domain    = null, 
-				string $issuer    = null, 
-				int    $digits    = null,
-				string $algorithm = null,
-				int    $counter   = null,
-				int    $period    = null,
-				string $type      = null
-				)
-			{
-				if ($reference->strict)
-				{
-					$this->algorithm	= !in_array($algorithm, Oath::$VALID_ALGORITHMS)	? $reference->algorithm	: $algorithm;
-					$this->digits		= !in_array($digits, Oath::$VALID_DIGITS)			? $reference->digits	: $digits;
-					$this->type			= !in_array($type, Oath::$VALID_TYPES)			? $reference->type		: $type;
-				}
-				else
-				{
-					$this->algorithm	= !in_array($algorithm, hash_hmac_algos())	? $reference->algorithm	: $algorithm;
-					$this->digits		= $digits;
-					
-				}
-				$this->type			= !in_array($type, Oath::$VALID_TYPES)		?	$reference->type	: $type;
-				$this->issuer     = $issuer                                 ??	$reference->issuer	?? "";
-				$this->account    = $account                                ??	$reference->account	?? "";
-				$this->domain     = $domain                                 ??	$reference->domain	?? "";
-				$this->secret     = $secret                                 ??	$reference->secret	?? "";
-				
-				if ($this->type === Oath::HOTP)
-				{ 
-					if (!($this->counter >= 0))
-					{
-						if (!($reference->counter >= 0)) 
-						{
-							$this->counter = 0;
-						}
-						else 
-						{
-							$this->counter = $reference->counter; 
-						}
-					}
-				}
-				else
-				{
-					if (!($this->period >= 1)) 
-					{ 
-						if (!($reference->period >= 1)) 
-						{
-							$this->period = 30;
-						} 
-						else 
-						{
-							$this->period = $reference->period;
-						}
-					}
-				}
-			}
-
-			public function getLabel()
-			{
-				$label =  "";
-				$label .= !empty($this->issuer)  ? "{$this->issuer}:" : "";
-				$label .= !empty($this->account) ? "{$this->account}" : "";
-				$label .= !empty($this->domain)  ? "@{$this->domain}" : "";
-
-				return $label;
-			}
-
-			public function getParameters()
-			{
-				$parameters = [
-					'secret'    => $this->secret,
-					'algorithm' => $this->algorithm,
-					'digits'    => $this->digits,
-				];
-				if (!empty($this->issuer)) $parameters['issuer'] = $this->issuer;
-				if ($this->type === Oath::HOTP)
-				{
-					$parameters['counter'] = $this->counter;
-				}
-				else
-				{
-					$parameters['period'] = $this->period;
-				}
-			}
-		};
-		
-	}
 	
 	/**
 	 * Configures the default parameters throughout the following session.
@@ -472,6 +342,7 @@ class Oath
 		string	$converter			= null
 	)
 	{
+		$algorithm					= $algorithm ? : strtolower($algorithm);
 		static::$STRICT				= $strict === null ? : $strict;
 		static::$TYPE				= $strict ? (!in_array($type, static::$VALID_TYPES) ? : $type) : ($type === null ? : $type);
 		static::$ISSUER				= $issuer === null ? : $issuer;
@@ -490,48 +361,16 @@ class Oath
 	 *
 	 * @return	string	Shared secret key
 	 */
-	public function secret () : string
+	protected function secret () : string
 	{	
 		// Making a cryptographical hash as a secret
 		$message = hash_pbkdf2($this->algorithm, $this->message, $this->salt, $this->iterations, $this->length, true);
 
 		// Base32 conversion, Use the appropriate base32 converter method here to transform secret TO base32
-		return $this->converter->fromString($message);
+		return $message;
 	}
 
-	/**
-	 * Returns a URI for secret exchange.
-	 *
-	 * @param	string	$secret		Shared Secret Key
-	 * @param	string	$account	Account name for identification of different keys
-	 * @param	string	$domain		Domain for the account used
-	 * @param	string	$issuer		Issuer of this key
-	 * @param	int		$digits		Number of digits of code
-	 * @param	string	$algorithm	The algorithm of code generation. Valid values are `sha1`, `sha256` and `sha1`
-	 * @param	int		$counter	Bias for the hotp counter
-	 * @param	int		$period		Interval of code generation in totp, in seconds
-	 * @param	string	$type		Type of code generation. Valid values are defined constants `OATH_TOTP` and `OATH_HOTP`
-	 *
-	 * @return	string	Key URI
-	 */
-	public function getURI () : string
-	{
-		$valid_obj  = $this->validate(
-			$this->secret,
-			$this->account,
-			$this->domain,
-			$this->issuer,
-			$this->digits,
-			$this->algorithm,
-			$this->counter,
-			$this->period,
-			$this->type
-		);
-		$label      = $valid_obj->getLabel();
-		$parameters = http_build_query($valid_obj->getParameters(), null, null, PHP_QUERY_RFC3986);
-		
-		return "otpauth://{$this->type}/$label?$parameters";
-	}
+	
 
 	/**
 	 * Generates a n digit code for authentication.
@@ -667,19 +506,491 @@ class Oath
 		$this->domain		= $domain === null ? static::$DOMAIN : $domain;
 		$this->account		= $account ?? "";
 
+		$algorithm = $algorithm ? : strtolower($algorithm);
 		$this->converter	= $converter	? new ${static::$CONVERTER}() : (!in_array(BaseConverterInterface::class, class_implements($converter, true)) ? new ${static::$CONVERTER}() : new $converter());
 		$this->algorithm	= $strict		? (!in_array($algorithm, static::$VALID_ALGORITHMS) ? static::$ALGORITHM : $algorithm) : ($algorithm === null ? static::$ALGORITHM : (!in_array($algorithm, hash_hmac_algos()) ? static::$ALGORITHM : $algorithm));
 		$this->digits		= $strict		? (!in_array($digits, static::$VALID_DIGITS) ? static::$DIGITS : $digits) : ($digits === null ? static::$DIGITS : $digits);
 		$this->type			= $strict		? (!in_array($type, static::$VALID_TYPES) ? static::$TYPE : $type) : ($type === null ? static::$TYPE : $type);
-		$this->secret		= $secret		?	($this->message = $this->salt = null)	: $this->secret();
+		
+		if ($secret)
+		{
+			$this->secret = $this->converter->toString($secret);
+			$this->message = null;
+			$this->salt = null;
+		}
+		else
+		{
+			$this->secret = $this->secret();
+		}
 
 		if ($this->type === Oath::HOTP)
 		{ 
 			$this->counter = ($initial_counter === null || $initial_counter < 0) ? static::$INITIAL_COUNTER : $initial_counter;
+			$this->period = null;
 		}
 		else
 		{
-			$this->period  = $period < 1 ? static::$PERIOD : $period;
+			$this->period = $period < 1 ? static::$PERIOD : $period;
+			$this->counter = null;
 		}
 	}
+
+	/**
+	 * Magic getter
+	 *
+	 * @param string $name
+	 * @return void
+	 */
+	public function __get($name)
+	{
+		$method = "get" . ucfirst($name);
+		if (method_exists($this, $method))
+		{
+			return $this->$method();
+		}
+		else
+		{
+			$trace = debug_backtrace(1);
+			trigger_error(
+				'Undefined property via __get(): ' . $name .
+				' in ' . $trace[0]['file'] .
+				' on line ' . $trace[0]['line'],
+				E_USER_NOTICE);
+			$k = null;
+
+			return $k;
+		}
+	}
+
+	/**
+	 * Magic setter
+	 *
+	 * @param string $name
+	 * @param mixed $value
+	 */
+	public function __set ($name, $value)
+	{
+		$method = 'set' . ucfirst($name);
+		if (method_exists($this, $method))
+		{
+			return $this->$method($value);
+		}
+		else
+		{
+			$trace = debug_backtrace(1);
+			trigger_error(
+				'Undefined property via __set(): ' . $name .
+				' in ' . $trace[0]['file'] .
+				' on line ' . $trace[0]['line'],
+				E_USER_NOTICE);
+			$k = null;
+
+			return $k;
+		}
+	}
+
+	// Getters
+
+	/**
+	 * Get strict mode boolean value
+	 *
+	 * @return boolean
+	 */
+	protected function getStrict () : bool
+	{
+		return $this->strict;
+	}
+	
+	/**
+	 * Get autogenerated message and salt length
+	 *
+	 * @return integer
+	 */
+	protected function getLength () : int
+	{
+		return $this->length;
+	}
+	
+	/**
+	 * Get secret generation hash iterations
+	 *
+	 * @return integer
+	 */
+	protected function getIterations () : int
+	{
+		return $this->iterations;
+	}
+	
+	/**
+	 * Get message
+	 *
+	 * @return string
+	 */
+	protected function getMessage () : string
+	{
+		return $this->message;
+	}
+	
+	/**
+	 * Get salt
+	 *
+	 * @return string
+	 */
+	protected function getSalt () : string
+	{
+		return $this->salt;
+	}
+	
+	/**
+	 * Get issuer
+	 *
+	 * @return string
+	 */
+	protected function getIssuer () : string
+	{
+		return $this->issuer;
+	}
+	
+	/**
+	 * Get domain
+	 *
+	 * @return string
+	 */
+	protected function getDomain () : string
+	{
+		return $this->domain;
+	}
+	
+	/**
+	 * Get account
+	 *
+	 * @return string
+	 */
+	protected function getAccount () : string
+	{
+		return $this->account;
+	}
+	
+	/**
+	 * Get Base32 converter object
+	 *
+	 * @return BaseConverterInterface
+	 */
+	protected function getConverter () : BaseConverterInterface
+	{
+		return $this->converter;
+	}
+	
+	/**
+	 * Get HMAC algorithm
+	 *
+	 * @return string
+	 */
+	protected function getAlgorithm () : string
+	{
+		return $this->algorithm;
+	}
+	
+	/**
+	 * Get number of digits of a code
+	 *
+	 * @return integer
+	 */
+	protected function getDigits () : int
+	{
+		return $this->digits;
+	}
+	
+	/**
+	 * Get OTP type
+	 *
+	 * @return string
+	 */
+	protected function getType () : string
+	{
+		return $this->type;
+	}
+	
+	/**
+	 * Get underlying secret in Base32
+	 *
+	 * @return string
+	 */
+	protected function getSecret () : string
+	{
+		return $this->converter->fromString($this->secret);
+	}
+	
+	/**
+	 * Get current counter value for HOTP
+	 *
+	 * @return integer
+	 */
+	protected function getCounter () : int
+	{
+		return $this->counter;
+	}
+	
+	/**
+	 * Get period of code mutation for TOTP
+	 *
+	 * @return integer
+	 */
+	protected function getPeriod () : int
+	{
+		return $this->period;
+	}
+
+	/**
+	 * Returns a URI for secret exchange.
+	 *
+	 * @return	string	Key URI
+	 */
+	public function getUri () : string
+	{
+		$label = !empty($this->account) ? "{$this->account}" . (!empty($this->domain)  ? "@{$this->domain}" : "") : "";
+		$label = !empty($this->issuer) ? (!empty($label) ? "{$this->issuer}:$label" : "{$this->issuer}") : $label;
+		$parameters = [
+			'secret'    => $this->secret,
+			'algorithm' => $this->algorithm,
+			'digits'    => $this->digits,
+		];
+		if (!empty($this->issuer))
+		{
+			$parameters['issuer'] = $this->issuer;
+		}
+		if ($this->type === Oath::HOTP)
+		{
+			$parameters['counter'] = $this->counter;
+		}
+		else
+		{
+			$parameters['period'] = $this->period;
+		}
+		$parameters = http_build_query($parameters, null, null, PHP_QUERY_RFC3986);
+		
+		return "otpauth://{$this->type}/$label?$parameters";
+	}
+
+	// Setters
+
+	/**
+	 * Set strict mode boolean
+	 *
+	 * @param boolean $value
+	 * 
+	 * @return boolean
+	 */
+	protected function setStrict (bool $value) : bool
+	{
+		$this->strict = $value === null ? : $value;
+		return $this->strict;
+	}
+	
+	/**
+	 * Set autogenerated message and salt length
+	 * 
+	 * currently useless
+	 *
+	 * @param integer $value
+	 * 
+	 * @return integer
+	 */
+	protected function setLength (int $value) : int
+	{
+		$this->length = $value < 1 ? : $value;
+		return $this->length;
+	}
+	
+	/**
+	 * Set autogenerated message and salt hash iterations
+	 * 
+	 * currently useless
+	 *
+	 * @param integer $value
+	 * 
+	 * @return integer
+	 */
+	protected function setIterations (int $value) : int
+	{
+		$this->iterations = $value < 1 ? : $value;
+		return $this->iterations;
+	}
+	
+	/**
+	 * Set message
+	 * 
+	 * currently useless
+	 *
+	 * @param string $value
+	 * 
+	 * @return string
+	 */
+	protected function setMessage (string $value) : string
+	{
+		$this->message = empty($value) ? : $value;
+		return $this->message;
+	}
+	
+	/**
+	 * Set salt
+	 * 
+	 * currently useless
+	 *
+	 * @param string $value
+	 * 
+	 * @return string
+	 */
+	protected function setSalt (string $value) : string
+	{
+		$this->salt = empty($value) ? : $value;
+		return $this->salt;
+	}
+	
+	/**
+	 * Set issuer
+	 *
+	 * @param string $value
+	 * 
+	 * @return string
+	 */
+	protected function setIssuer (string $value) : string
+	{
+		$this->issuer = $value === null ? : $value;
+		return $this->issuer;
+	}
+	
+	/**
+	 * Set domain
+	 *
+	 * @param string $value
+	 * 
+	 * @return string
+	 */
+	protected function setDomain (string $value) : string
+	{
+		$this->domain = $value === null ? : $value;
+		return $this->domain;
+	}
+	
+	/**
+	 * Set account
+	 *
+	 * @param string $value
+	 * 
+	 * @return string
+	 */
+	protected function setAccount (string $value) : string
+	{
+		$this->account = $value ? : $value;
+		return $this->account;
+	}
+	
+	/**
+	 * Set Base32 converter object
+	 *
+	 * @param BaseConverterInterface $value
+	 * 
+	 * @return BaseConverterInterface
+	 */
+	protected function setConverter (BaseConverterInterface $value) : BaseConverterInterface
+	{
+		$this->converter = $value ? : $value;
+		return $this->converter;
+	}
+	
+	/**
+	 * Set HMAC algorithm
+	 *
+	 * @param string $value Algorithm as specified in standard, it can use all hmac algorithms available to the system if strict mode is off.
+	 * 
+	 * @return string
+	 */
+	protected function setAlgorithm (string $value) : string
+	{
+		$value = $value ? : strtolower($value);
+		$this->algorithm = $this->strict ? (!in_array($value, static::$VALID_ALGORITHMS) ? : $value) : ($value === null ? : (!in_array($value, hash_hmac_algos()) ? : $value));
+		return $this->algorithm;
+	}
+	
+	/**
+	 * Set number of digits of a code
+	 *
+	 * @param integer $value Number of digits per code as specified in standard. It can be any Natural number if strict mode is turned off.
+	 * 
+	 * @return integer
+	 */
+	protected function setDigits (int $value) : int
+	{
+		$this->digits = $this->strict ? (!in_array($value, static::$VALID_DIGITS) ? : $value) : ($value === null ? : $value);
+		return $this->digits;
+	}
+	
+	/**
+	 * Set OTP type
+	 *
+	 * @param string $value It can either be `totp` or `hotp`; but can be any arbitary string if strict mode is turned off, though things get weird.
+	 * 
+	 * !!!Custom values are never tested!!!
+	 * 
+	 * @return string
+	 */
+	protected function setType (string $value) : string
+	{
+		$this->type = $this->strict ? (!in_array($value, static::$VALID_TYPES) ? : $value) : ($value === null ? : $value);
+		return $this->type;
+	}
+	
+	/**
+	 * Set shared secret
+	 *
+	 * @param string $value It MUST be a Base32 encoded string
+	 * 
+	 * @return string
+	 */
+	protected function setSecret (string $value) : string
+	{
+		if ($value)
+		{
+			$this->secret = $this->converter->toString($value);
+			$this->message = null;
+			$this->salt = null;
+		}
+		return $this->converter->fromString($this->secret);
+	}
+	
+	/**
+	 * Set the current counter in HOTP
+	 *
+	 * @param integer $value Must be a positive integer
+	 * 
+	 * @return integer
+	 */
+	protected function setCounter (int $value) : int
+	{
+		if ($this->type === Oath::HOTP)
+		{ 
+			$this->counter = ($value === null || $value < 0) ? : $value;
+			$this->period = null;
+		}
+		return $this->counter;
+	}
+	
+	/**
+	 * Set the period for code mutation in TOTP
+	 *
+	 * @param integer $value Must be a Natural number
+	 * 
+	 * @return integer
+	 */
+	protected function setPeriod (int $value) : int
+	{
+		if ($this->type === Oath::TOTP)
+		{
+			$this->period  = $value < 1 ? : $value;
+			$this->counter = null;
+		}
+		return $this->period;
+	}
+
 }
