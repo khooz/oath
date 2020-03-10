@@ -509,7 +509,7 @@ class Oath
 		
 		if ($secret)
 		{
-			$this->secret = $this->converter->toString($secret);
+			$this->secret = $this->converter->decode($secret);
 			$this->message = null;
 			$this->salt = null;
 		}
@@ -713,7 +713,7 @@ class Oath
 	 */
 	protected function getSecret () : string
 	{
-		return $this->converter->fromString($this->secret);
+		return $this->converter->encode($this->secret);
 	}
 	
 	/**
@@ -746,7 +746,7 @@ class Oath
 		$label = !empty($this->account) ? "{$this->account}" . (!empty($this->domain)  ? "@{$this->domain}" : "") : "";
 		$label = !empty($this->issuer) ? (!empty($label) ? "{$this->issuer}:$label" : "{$this->issuer}") : $label;
 		$parameters = [
-			'secret'    => $this->converter->fromString($this->secret),
+			'secret'    => $this->converter->encode($this->secret),
 			'algorithm' => $this->algorithm,
 			'digits'    => $this->digits,
 		];
@@ -947,11 +947,11 @@ class Oath
 	{
 		if ($value)
 		{
-			$this->secret = $this->converter->toString($value);
+			$this->secret = $this->converter->decode($value);
 			$this->message = null;
 			$this->salt = null;
 		}
-		return $this->converter->fromString($this->secret);
+		return $this->converter->encode($this->secret);
 	}
 	
 	/**

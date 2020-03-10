@@ -1,9 +1,9 @@
 # Oath
-Oath is a One Time Password library mostly known as authenticators in Google's Two-Step Verification and similar products. It covers both HOTP and TOTP based on their RFC descriptions.
+Oath is a One Time Password library used in authenticators. It covers both HOTP and TOTP methods of code generation.
 
 
-## Description of Oath
-It implements the Two Step Authentication specified in RFC6238 @ http://tools.ietf.org/html/rfc6238 using OATH and compatible with Google Authenticator App for android. It uses a 3rd party class called Base32 for RFC3548 base 32 encode/decode. Feel free to use better adjusted implementation.
+## What is Package?
+It implements the HMAC-based One-Time Password specified in [RFC6238](http://tools.ietf.org/html/rfc6238) used in many Two Step Authentication solutions. It is compatible with Authenticator Apps Like Google's and Microsoft's. It uses a @devicenull 's class called [Base32](https://github.com/devicenull/PHP-Google-Authenticator/blob/master/base32.php) for [RFC3548](https://tools.ietf.org/html/rfc3548) Base32 encodeing and decoding. Feel free to use any custom Base32-converting class, which have `encode` and `decode` public static functions.
 
 # Getting Started
 This package uses PSR-4 autoloading which eases the installation and use with major framework or any projects utilising composer. Simply use composer to install this package as your project's dependency:
@@ -44,10 +44,55 @@ Oath::config(
 
 One instantiated, the `Oath` object encapsulates all the data it needs for a single user and defaults can safely be changed for furthur users.
 
+## Methods
+### `Oath::generate(int $pivot)`
+Generates a new code based on object parameter. By using $pivot, you can go back and forth with codes and generate expired codes (negative value) or coming codes (positive value). You will get the current valid code when `$pivot = 0` (default behaviour).
 
-Special Thanks goes to
-======================
+```php
+$oath->generate(-1); // Generates the last expired code
+$oath->generate(0); // Generates the current valid code
+$oath->generate(1); // Generates the next code in codes sequence
+```
 
-phil@idontplaydarts.com for this article https://www.idontplaydarts.com/2011/07/google-totp-two-factor-authentication-for-php/
-Wikipedia.org for this article http://en.wikipedia.org/wiki/Google_Authenticator
-devicenull@github.com for this class https://github.com/devicenull/PHP-Google-Authenticator/blob/master/base32.php
+### `Oath::check(int $code, int $rabge, int $pivot)`
+Checks an n-digit, integer `$code` with a telorance of `$range` around a `$pivot` point in codes sequence.
+
+```php
+$oath->check(123456, 0, 1); // Checks 123456 against the last expired, current, and next codes; gives user a 90s leeway in a 30s-period TOTP
+```
+
+## Properties
+All non-static properties of `Oath` is accessible through it's name's `__get` and `__set` invocations; though there are some important properties and some virtual properties woth mentioning. I encourage you to see the `Oath` class in detail.
+
+### `Oath::secret`
+Along with `Oath::message` and `Oath::salt`, the secret or the other two (which make the secret if they are present) define an instance for authentication. You should exchange the secret to the user to store so you could generate the same codes sequence to compare against. You should also store either the secret, or the message & salt. The secret is a binary string represented in Base32 encoding.
+
+#### `Oath::message` and `Oath::salt`
+You either introduce a Base32 secret, or make one using a message and a salt. if you don't provide either, a randomly generated message and salt will generate a secret for you.
+
+### `Oath->uri`
+This is a virtual property which will give you an `otpauth` URL-encoded URI, so you could use a QR-code or a link to exchange authentication token instances with user.
+It is formatted as bellow:
+```
+auth token instance = otpauth://type/label?parameters
+type = hotp | totp
+label = issuer:account@domain
+```
+The `parameters` are `secret`, `digits`, `algorithm`, `period` or `counter` in URL-encoded HTTP Query format.
+
+
+
+
+# Special Thanks goes to
+
+* phil@idontplaydarts.com for [this article](https://www.idontplaydarts.com/2011/07/google-totp-two-factor-authentication-for-php/)
+* Wikipedia.org for [this article](http://en.wikipedia.org/wiki/Google_Authenticator)
+* @devicenull for [this class](https://github.com/devicenull/PHP-Google-Authenticator/blob/master/base32.php)
+
+
+## finally()
+{
+	
+And if you feel like it, you can [donate here](paypal.me/khooz) to help me.
+
+}

@@ -223,7 +223,7 @@ class Base32 implements BaseConverterInterface
 	}
 
 	/**
-	 * fromString
+	 * encode
 	 *
 	 * Convert any string to a base32 string
 	 * This should be binary safe...
@@ -232,13 +232,13 @@ class Base32 implements BaseConverterInterface
 	 *
 	 * @return string The converted base32 string
 	 */
-	public static function fromString (string $str) : string
+	public static function encode (string $str) : string
 	{
 		return static::fromBin(static::str2bin($str));
 	}
 
 	/**
-	 * toString
+	 * decode
 	 *
 	 * Convert any base32 string to a normal sctring
 	 * This should be binary safe...
@@ -247,7 +247,7 @@ class Base32 implements BaseConverterInterface
 	 *
 	 * @return string The normal string
 	 */
-	public static function toString (string $str) : string
+	public static function decode (string $str) : string
 	{
 		$str = strtoupper($str);
 
